@@ -1,7 +1,42 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.models import Group, User
 
 from .models import Category, Location, Post
 
-admin.site.register(Location)
-admin.site.register(Post)
-admin.site.register(Category)
+
+@admin.register(Location)
+class LocationAdmin(admin.ModelAdmin):
+    list_display = ('name', 'is_published')
+    search_fields = ('name',)
+    list_filter = ('is_published',)
+
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ('title', 'slug', 'is_published')
+    search_fields = ('title', 'slug')
+    list_filter = ('is_published',)
+
+
+@admin.register(Post)
+class PostAdmin(admin.ModelAdmin):
+    list_display = ('title', 'author', 'category', 'pub_date', 'is_published')
+    search_fields = ('title', 'author__username', 'category__title')
+    list_filter = ('is_published', 'pub_date', 'category')
+    list_display_links = ('title', 'author')
+    admin.site.unregister(User)
+
+
+@admin.display(description='Кол-во постов')
+def posts_count(self, obj):
+    return obj.author.posts.count()
+
+
+@admin.register(User)
+class UserAdmin(BaseUserAdmin):
+    list_display = ('username', 'email', 'is_staff')
+    search_fields = ('username', 'email')
+
+
+admin.site.unregister(Group)

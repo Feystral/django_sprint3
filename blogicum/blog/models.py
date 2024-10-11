@@ -1,8 +1,12 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 
+from .constants import TITLE_MAX_LENGTH, MAX_SIMBOL_FOR_TITLE
 
-class PublishedModel(models.Model):
+User = get_user_model()
+
+
+class PublishedAndCreatedAtModel(models.Model):
     is_published = models.BooleanField(
         'Опубликовано', default=True,
         help_text='Снимите галочку, чтобы скрыть публикацию.'
@@ -13,11 +17,8 @@ class PublishedModel(models.Model):
         abstract = True
 
 
-User = get_user_model()
-
-
-class Category(PublishedModel):
-    title = models.CharField('Заголовок', max_length=256)
+class Category(PublishedAndCreatedAtModel):
+    title = models.CharField('Заголовок', max_length=TITLE_MAX_LENGTH)
     description = models.TextField('Описание')
     slug = models.SlugField(
         'Идентификатор', unique=True,
@@ -30,13 +31,13 @@ class Category(PublishedModel):
         verbose_name_plural = 'Категории'
 
     def __str__(self):
-        return self.title
+        return self.title[:MAX_SIMBOL_FOR_TITLE]
 
 
-class Location(PublishedModel):
+class Location(PublishedAndCreatedAtModel):
     name = models.CharField(
         'Название места',
-        max_length=256
+        max_length=TITLE_MAX_LENGTH
     )
 
     class Meta:
@@ -44,11 +45,11 @@ class Location(PublishedModel):
         verbose_name_plural = 'Местоположения'
 
     def __str__(self):
-        return self.name
+        return self.name[:MAX_SIMBOL_FOR_TITLE]
 
 
-class Post(PublishedModel):
-    title = models.CharField('Заголовок', max_length=256)
+class Post(PublishedAndCreatedAtModel):
+    title = models.CharField('Заголовок', max_length=TITLE_MAX_LENGTH)
     text = models.TextField('Текст')
     pub_date = models.DateTimeField(
         'Дата и время публикации',
@@ -57,20 +58,20 @@ class Post(PublishedModel):
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
-        related_name='post',
+        related_name='posts',
         verbose_name='Категория',
         null=True,
     )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='post',
+        related_name='posts',
         verbose_name='Автор публикации',
     )
     location = models.ForeignKey(
         Location,
         on_delete=models.SET_NULL,
-        related_name='post',
+        related_name='posts',
         verbose_name='Местоположение',
         null=True,
         blank=True
@@ -79,6 +80,7 @@ class Post(PublishedModel):
     class Meta:
         verbose_name = 'публикация'
         verbose_name_plural = 'Публикации'
+        ordering = ['-pub_date']
 
     def __str__(self):
-        return self.title
+        return self.title[:MAX_SIMBOL_FOR_TITLE]

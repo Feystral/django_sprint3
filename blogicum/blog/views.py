@@ -1,43 +1,34 @@
-from django.shortcuts import render, get_object_or_404
-from django.utils import timezone
-from django.http import Http404
-from .models import Post, Category
+from django.shortcuts import get_object_or_404, render
+from django.utils.timezone import now
+
+from .models import Category, Post
+from .constants import POSTS_PER_PAGE
+
+
+def get_filtered_posts(manager, **filters):
+    return manager.filter(
+        **filters,
+        pub_date__lte=now(),
+        is_published=True,
+        category__is_published=True
+    ).select_related('author', 'location', 'category')
 
 
 def index(request):
-    current_time = timezone.now()
-    post_list = Post.objects.filter(
-        pub_date__lte=current_time,
-        is_published=True,
-        category__is_published=True
-    ).order_by('-pub_date')[:5]
+    post_list = get_filtered_posts(Post.objects)[:POSTS_PER_PAGE]
     return render(request, 'blog/index.html', {'post_list': post_list})
 
 
-def post_detail(request, id):
-    post = get_object_or_404(Post, pk=id)
-    if any([
-        post.pub_date > timezone.now(),
-        not post.is_published,
-        not post.category.is_published
-    ]):
-        raise Http404("Эта публикация недоступна.")
-
+def post_detail(request, post_id):
+    post = get_object_or_404(get_filtered_posts(Post.objects), pk=post_id)
     return render(request, 'blog/detail.html', {'post': post})
 
 
 def category_posts(request, category_slug):
-    category = get_object_or_404(Category, slug=category_slug)
-    if not category.is_published:
-        raise Http404("Эта категория недоступна.")
-
-    current_time = timezone.now()
-    post_list = Post.objects.filter(
-        category=category,
-        is_published=True,
-        pub_date__lte=current_time
-    ).order_by('-pub_date')
-
+    category = get_object_or_404(
+        Category, slug=category_slug,
+        is_published=True)
+    post_list = get_filtered_posts(category.posts.all())
     return render(request, 'blog/category.html', {
         'category': category,
         'post_list': post_list,
