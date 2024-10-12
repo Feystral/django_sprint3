@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 
-from .constants import TITLE_MAX_LENGTH, MAX_SIMBOL_FOR_TITLE
+from .constants import MAX_LENGTH, CUT_BOUNDARY
 
 User = get_user_model()
 
@@ -18,7 +18,7 @@ class PublishedAndCreatedAtModel(models.Model):
 
 
 class Category(PublishedAndCreatedAtModel):
-    title = models.CharField('Заголовок', max_length=TITLE_MAX_LENGTH)
+    title = models.CharField('Заголовок', max_length=MAX_LENGTH)
     description = models.TextField('Описание')
     slug = models.SlugField(
         'Идентификатор', unique=True,
@@ -31,13 +31,13 @@ class Category(PublishedAndCreatedAtModel):
         verbose_name_plural = 'Категории'
 
     def __str__(self):
-        return self.title[:MAX_SIMBOL_FOR_TITLE]
+        return self.title[:CUT_BOUNDARY]
 
 
 class Location(PublishedAndCreatedAtModel):
     name = models.CharField(
         'Название места',
-        max_length=TITLE_MAX_LENGTH
+        max_length=MAX_LENGTH
     )
 
     class Meta:
@@ -45,11 +45,11 @@ class Location(PublishedAndCreatedAtModel):
         verbose_name_plural = 'Местоположения'
 
     def __str__(self):
-        return self.name[:MAX_SIMBOL_FOR_TITLE]
+        return self.name[:CUT_BOUNDARY]
 
 
 class Post(PublishedAndCreatedAtModel):
-    title = models.CharField('Заголовок', max_length=TITLE_MAX_LENGTH)
+    title = models.CharField('Заголовок', max_length=MAX_LENGTH)
     text = models.TextField('Текст')
     pub_date = models.DateTimeField(
         'Дата и время публикации',
@@ -80,7 +80,7 @@ class Post(PublishedAndCreatedAtModel):
     class Meta:
         verbose_name = 'публикация'
         verbose_name_plural = 'Публикации'
-        ordering = ['-pub_date']
+        ordering = ('-pub_date',)
 
     def __str__(self):
-        return self.title[:MAX_SIMBOL_FOR_TITLE]
+        return self.title[:CUT_BOUNDARY]

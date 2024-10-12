@@ -4,6 +4,8 @@ from django.contrib.auth.models import Group, User
 
 from .models import Category, Location, Post
 
+admin.site.unregister(User)
+
 
 @admin.register(Location)
 class LocationAdmin(admin.ModelAdmin):
@@ -25,18 +27,16 @@ class PostAdmin(admin.ModelAdmin):
     search_fields = ('title', 'author__username', 'category__title')
     list_filter = ('is_published', 'pub_date', 'category')
     list_display_links = ('title', 'author')
-    admin.site.unregister(User)
-
-
-@admin.display(description='Кол-во постов')
-def posts_count(self, obj):
-    return obj.author.posts.count()
 
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
-    list_display = ('username', 'email', 'is_staff')
+    list_display = ('username', 'email', 'is_staff', 'posts_count')
     search_fields = ('username', 'email')
+
+    @admin.display(description='Кол-во постов')
+    def posts_count(self, obj):
+        return obj.posts.count()
 
 
 admin.site.unregister(Group)

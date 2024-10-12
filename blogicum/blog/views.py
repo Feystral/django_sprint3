@@ -5,9 +5,8 @@ from .models import Category, Post
 from .constants import POSTS_PER_PAGE
 
 
-def get_filtered_posts(manager, **filters):
+def get_filtered_posts(manager):
     return manager.filter(
-        **filters,
         pub_date__lte=now(),
         is_published=True,
         category__is_published=True
